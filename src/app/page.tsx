@@ -88,12 +88,14 @@ function KPICard({
   value,
   color,
   subtext,
+  redistribuido,
   onClick,
 }: {
   title: string;
   value: string;
   color: string;
   subtext: string;
+  redistribuido?: number;
   onClick: () => void;
 }) {
   return (
@@ -106,7 +108,13 @@ function KPICard({
         <CardContent className="p-4 pl-5">
           <p className="text-[11px] uppercase tracking-wider text-slate-400">{title}</p>
           <h2 className="text-2xl font-bold mt-1" style={{ color }}>{value}</h2>
-          <p className="text-[11px] text-slate-500 mt-1">{subtext}</p>
+          {redistribuido && redistribuido > 0 ? (
+            <p className="text-[11px] mt-1 text-emerald-400 font-medium">
+              +{formatCLP(redistribuido)} redistribuido
+            </p>
+          ) : (
+            <p className="text-[11px] text-slate-500 mt-1">{subtext}</p>
+          )}
         </CardContent>
       </Card>
     </motion.div>
@@ -163,7 +171,7 @@ function CategorySection({
   data,
 }: {
   catKey: CategoryKey;
-  data: { nombre: string; monto: number; conceptos: ConceptoCalculado[] };
+  data: { nombre: string; monto: number; redistribuido?: number; conceptos: ConceptoCalculado[] };
 }) {
   const toggleConcepto = useFinControlStore((s) => s.toggleConcepto);
   const cat = CATEGORIAS[catKey];
@@ -174,6 +182,11 @@ function CategorySection({
         <span className="h-2 w-2 rounded-full" style={{ backgroundColor: cat.color }} />
         {data.nombre}
         <span className="text-sm font-normal text-slate-400">— {formatCLP(data.monto)}</span>
+        {data.redistribuido && data.redistribuido > 0 && (
+          <span className="ml-1 text-[11px] font-medium text-emerald-400">
+            (+{formatCLP(data.redistribuido)} redis.)
+          </span>
+        )}
       </h4>
       <div className="space-y-1">
         {data.conceptos.map((c) => (
@@ -198,14 +211,13 @@ function DonutChartSection({ data, vistaActual, onSectorClick }: {
   const { labels, values, colors, title } = useMemo(() => {
     if (vistaActual === 'generales') {
       const keys: CategoryKey[] = ['mayores', 'menores', 'inversiones'];
-      const lbls = keys.map(k => `${CATEGORIAS[k].nombre} (${CATEGORIAS[k].pctTotal}%)`);
+      const lbls = keys.map(k => {
+        const cat = data.categorias[k];
+        const extra = cat.redistribuido > 0 ? ` (+${formatCLP(cat.redistribuido)})` : '';
+        return `${CATEGORIAS[k].nombre}${extra}`;
+      });
       const vals = keys.map(k => data.categorias[k].monto);
       const cols = keys.map(k => CATEGORIAS[k].color);
-      if (data.sinAsignar > 0) {
-        lbls.push('Sin Asignar');
-        vals.push(data.sinAsignar);
-        cols.push('#64748b');
-      }
       return { labels: lbls, values: vals, colors: cols, title: 'Distribución del Ingreso' };
     }
     const cat = CATEGORIAS[vistaActual as CategoryKey];
@@ -615,6 +627,7 @@ export default function FinControlPage() {
               value={formatCLP(data.categorias.mayores.monto)}
               color="#ef4444"
               subtext="Toca para desglosar"
+              redistribuido={data.categorias.mayores.redistribuido}
               onClick={() => handleDrillDown('mayores')}
             />
             <KPICard
@@ -622,6 +635,7 @@ export default function FinControlPage() {
               value={formatCLP(data.categorias.menores.monto)}
               color="#f59e0b"
               subtext="Toca para desglosar"
+              redistribuido={data.categorias.menores.redistribuido}
               onClick={() => handleDrillDown('menores')}
             />
             <KPICard
@@ -629,6 +643,7 @@ export default function FinControlPage() {
               value={formatCLP(data.categorias.inversiones.monto)}
               color="#10b981"
               subtext="Toca para desglosar"
+              redistribuido={data.categorias.inversiones.redistribuido}
               onClick={() => handleDrillDown('inversiones')}
             />
           </motion.div>
@@ -673,7 +688,10 @@ export default function FinControlPage() {
                     <p className="text-slate-400 text-sm mt-1">
                       Toca un concepto para{' '}
                       <strong className="text-slate-300">tacharlo</strong> si no aplica a tu situación.
-                      El dinero se redistribuye automáticamente entre los conceptos activos.
+                      El dinero se redistribuye entre los conceptos activos de la misma categoría.
+                      Si una categoría queda en $0, ese dinero se redistribuye:{' '}
+                      <strong className="text-emerald-400">30% a Gastos Menores</strong> y{' '}
+                      <strong className="text-emerald-400">70% a Inversiones</strong>.
                     </p>
                   </div>
                   <Button

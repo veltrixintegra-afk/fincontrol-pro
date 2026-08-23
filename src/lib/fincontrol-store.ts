@@ -27,12 +27,15 @@ export interface ConceptoCalculado extends Concepto {
 export interface CategoriaCalculada {
   nombre: string;
   monto: number;
+  montoBase: number;
+  redistribuido: number;
   conceptos: ConceptoCalculado[];
 }
 
 export interface CalculatedData {
   categorias: Record<CategoryKey, CategoriaCalculada>;
   sinAsignar: number;
+  tieneRedistribucion: boolean;
 }
 
 export interface ProjectionRow {
@@ -96,10 +99,14 @@ function saveDisabledIds(ids: number[]) {
   }
 }
 
+// Cuándo una categoría queda en $0, el dinero se redistribuye:
+// 30% → Gastos Menores, 70% → Inversiones
 export function calcularTodo(conceptos: Concepto[], ingreso: number): CalculatedData {
-  const data: CalculatedData = { categorias: {} as Record<CategoryKey, CategoriaCalculada>, sinAsignar: 0 };
+  const data: CalculatedData = { categorias: {} as Record<CategoryKey, CategoriaCalculada>, sinAsignar: 0, tieneRedistribucion: false };
   const keys: CategoryKey[] = ['mayores', 'menores', 'inversiones'];
+  let sinAsignar = 0;
 
+  // Fase 1: calcular montos base por categoría
   for (const key of keys) {
     const cat = CATEGORIAS[key];
     const lista = conceptos.filter(c => c.cat === key);
@@ -111,6 +118,8 @@ export function calcularTodo(conceptos: Concepto[], ingreso: number): Calculated
     data.categorias[key] = {
       nombre: cat.nombre,
       monto: montoCategoria,
+      montoBase: montoCategoria,
+      redistribuido: 0,
       conceptos: lista.map((c, i) => {
         const monto = (c.activo && sumaBase > 0) ? totalMonto * (c.pct / sumaBase) : 0;
         const pctFinal = (c.activo && sumaBase > 0) ? (c.pct / sumaBase) * cat.pctTotal : 0;
@@ -118,7 +127,60 @@ export function calcularTodo(conceptos: Concepto[], ingreso: number): Calculated
       }),
     };
 
-    if (activos.length === 0) data.sinAsignar += totalMonto;
+    if (activos.length === 0) sinAsignar += totalMonto;
+  }
+
+  // Fase 2: redistribuir el dinero no asignado a Menores (30%) e Inversiones (70%)
+  if (sinAsignar > 0) {
+    const menoresTieneActivos = data.categorias.menores.conceptos.some(c => c.activo);
+    const invTieneActivos = data.categorias.inversiones.conceptos.some(c => c.activo);
+
+    let aMenores = 0;
+    let aInversiones = 0;
+
+    if (menoresTieneActivos && invTieneActivos) {
+      aMenores = sinAsignar * 0.3;
+      aInversiones = sinAsignar * 0.7;
+    } else if (invTieneActivos) {
+      aInversiones = sinAsignar;
+    } else if (menoresTieneActivos) {
+      aMenores = sinAsignar;
+    } else {
+      data.sinAsignar = sinAsignar;
+      return data;
+    }
+
+    // Aplicar a Menores
+    if (aMenores > 0) {
+      const catKey: CategoryKey = 'menores';
+      const cat = CATEGORIAS[catKey];
+      const activos = data.categorias[catKey].conceptos.filter(c => c.activo);
+      const sumaBase = activos.reduce((s, c) => s + c.pct, 0);
+      data.categorias[catKey].monto += aMenores;
+      data.categorias[catKey].redistribuido = aMenores;
+      data.categorias[catKey].conceptos = data.categorias[catKey].conceptos.map((c, i) => {
+        if (!c.activo) return c;
+        const monto = data.categorias[catKey].montoBase * (c.pct / sumaBase) + aMenores * (c.pct / sumaBase);
+        return { ...c, monto, color: cat.paleta[i % cat.paleta.length] };
+      });
+    }
+
+    // Aplicar a Inversiones
+    if (aInversiones > 0) {
+      const catKey: CategoryKey = 'inversiones';
+      const cat = CATEGORIAS[catKey];
+      const activos = data.categorias[catKey].conceptos.filter(c => c.activo);
+      const sumaBase = activos.reduce((s, c) => s + c.pct, 0);
+      data.categorias[catKey].monto += aInversiones;
+      data.categorias[catKey].redistribuido = aInversiones;
+      data.categorias[catKey].conceptos = data.categorias[catKey].conceptos.map((c, i) => {
+        if (!c.activo) return c;
+        const monto = data.categorias[catKey].montoBase * (c.pct / sumaBase) + aInversiones * (c.pct / sumaBase);
+        return { ...c, monto, color: cat.paleta[i % cat.paleta.length] };
+      });
+    }
+
+    data.tieneRedistribucion = true;
   }
 
   return data;
