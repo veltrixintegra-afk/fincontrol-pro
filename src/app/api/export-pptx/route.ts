@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
     s1.addText('Dashboard Ejecutivo y Proyección Financiera', {
       x: 1, y: 2.8, w: 11, h: 0.8, fontSize: 24, color: 'FFFFFF',
     });
-    s1.addText(`Ingreso: ${ingresoFmt} | 70% Mayores | 15% Menores | 15% Inversiones`, {
+    s1.addText(`Ingreso: ${ingresoFmt} | 50% Mayores | 20% Menores | 30% Inversiones`, {
       x: 1, y: 3.7, w: 11, h: 0.5, fontSize: 14, color: '94a3b8',
     });
     s1.addText(`Conceptos activos en el plan: ${totalActivos} de ${totalConceptos}`, {

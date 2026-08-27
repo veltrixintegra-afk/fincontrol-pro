@@ -600,7 +600,7 @@ export default function FinControlPage() {
                   <div className="text-center md:text-right mt-1 md:mt-4 shrink-0">
                     <p className="text-xs text-slate-400">Distribución base</p>
                     <p className="font-bold text-slate-300 text-sm">
-                      70% Mayores | 15% Menores | 15% Inv.
+                      50% Mayores | 20% Menores | 30% Inv.
                     </p>
                   </div>
                 </div>
@@ -623,7 +623,7 @@ export default function FinControlPage() {
               onClick={() => handleDrillDown('generales')}
             />
             <KPICard
-              title="Gastos Mayores (70%)"
+              title="Gastos Mayores (50%)"
               value={formatCLP(data.categorias.mayores.monto)}
               color="#ef4444"
               subtext="Toca para desglosar"
@@ -631,7 +631,7 @@ export default function FinControlPage() {
               onClick={() => handleDrillDown('mayores')}
             />
             <KPICard
-              title="Gastos Menores (15%)"
+              title="Gastos Menores (20%)"
               value={formatCLP(data.categorias.menores.monto)}
               color="#f59e0b"
               subtext="Toca para desglosar"
@@ -639,7 +639,7 @@ export default function FinControlPage() {
               onClick={() => handleDrillDown('menores')}
             />
             <KPICard
-              title="Inversiones (15%)"
+              title="Inversiones (30%)"
               value={formatCLP(data.categorias.inversiones.monto)}
               color="#10b981"
               subtext="Toca para desglosar"
@@ -690,8 +690,8 @@ export default function FinControlPage() {
                       <strong className="text-slate-300">tacharlo</strong> si no aplica a tu situación.
                       El dinero se redistribuye entre los conceptos activos de la misma categoría.
                       Si una categoría queda en $0, ese dinero se redistribuye:{' '}
-                      <strong className="text-emerald-400">30% a Gastos Menores</strong> y{' '}
-                      <strong className="text-emerald-400">70% a Inversiones</strong>.
+                      <strong className="text-emerald-400">50% a Gastos Menores</strong> y{' '}
+                      <strong className="text-emerald-400">50% a Inversiones</strong>.
                     </p>
                   </div>
                   <Button

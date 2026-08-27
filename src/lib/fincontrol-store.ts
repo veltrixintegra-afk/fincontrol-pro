@@ -48,19 +48,19 @@ export interface ProjectionRow {
 export const CATEGORIAS: Record<CategoryKey, CategoriaConfig> = {
   mayores: {
     nombre: 'Gastos Mayores',
-    pctTotal: 70,
+    pctTotal: 50,
     color: '#ef4444',
     paleta: ['#ef4444', '#f87171', '#fca5a5', '#fecaca'],
   },
   menores: {
     nombre: 'Gastos Menores',
-    pctTotal: 15,
+    pctTotal: 20,
     color: '#f59e0b',
     paleta: ['#f59e0b', '#fbbf24', '#fcd34d', '#fde68a'],
   },
   inversiones: {
     nombre: 'Inversiones',
-    pctTotal: 15,
+    pctTotal: 30,
     color: '#10b981',
     paleta: ['#10b981', '#34d399', '#6ee7b7', '#a7f3d0'],
   },
@@ -100,7 +100,7 @@ function saveDisabledIds(ids: number[]) {
 }
 
 // Cuándo una categoría queda en $0, el dinero se redistribuye:
-// 30% → Gastos Menores, 70% → Inversiones
+// 50% → Gastos Menores, 50% → Inversiones
 export function calcularTodo(conceptos: Concepto[], ingreso: number): CalculatedData {
   const data: CalculatedData = { categorias: {} as Record<CategoryKey, CategoriaCalculada>, sinAsignar: 0, tieneRedistribucion: false };
   const keys: CategoryKey[] = ['mayores', 'menores', 'inversiones'];
@@ -139,8 +139,8 @@ export function calcularTodo(conceptos: Concepto[], ingreso: number): Calculated
     let aInversiones = 0;
 
     if (menoresTieneActivos && invTieneActivos) {
-      aMenores = sinAsignar * 0.3;
-      aInversiones = sinAsignar * 0.7;
+      aMenores = sinAsignar * 0.5;
+      aInversiones = sinAsignar * 0.5;
     } else if (invTieneActivos) {
       aInversiones = sinAsignar;
     } else if (menoresTieneActivos) {
