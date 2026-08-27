@@ -76,9 +76,9 @@ const INITIAL_CONCEPTOS: Concepto[] = [
   { id: 7, cat: 'menores', nombre: 'Vestimenta', pct: 2, activo: true },
   { id: 8, cat: 'menores', nombre: 'Imprevistos', pct: 2, activo: true },
   { id: 9, cat: 'inversiones', nombre: 'Cuenta de Ahorro', pct: 5, activo: true },
-  { id: 10, cat: 'inversiones', nombre: 'APV Régimen A', pct: 5, activo: true },
+  { id: 10, cat: 'inversiones', nombre: 'APV Reg. A (Póliza Unit Linked)', pct: 5, activo: true },
   { id: 11, cat: 'inversiones', nombre: 'ETF / Acciones', pct: 2.5, activo: true },
-  { id: 12, cat: 'inversiones', nombre: 'DPF (Plazo Fijo)', pct: 2.5, activo: true },
+  { id: 12, cat: 'inversiones', nombre: 'DPF Art. 57 Bis (ex 54)', pct: 2.5, activo: true },
 ];
 
 function loadDisabledIds(): number[] {
